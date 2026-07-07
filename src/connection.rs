@@ -1,4 +1,5 @@
 use core::ffi::{c_char, c_int, c_void};
+// use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
@@ -11,6 +12,7 @@ pub struct Connection {
     raw: Raw,
     busy_callback: Option<Box<dyn FnMut(usize) -> bool + Send>>,
     phantom: PhantomData<ffi::sqlite3>,
+    // statements: HashMap<*mut ffi::sqlite3_stmt, crate::Statement>,
 }
 
 /// A thread-safe connection.

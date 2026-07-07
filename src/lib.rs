@@ -128,6 +128,7 @@ macro_rules! str_to_cstr(
 mod error;
 mod value;
 
+mod columns;
 mod connection;
 mod cursor;
 mod statement;
@@ -135,11 +136,10 @@ mod statement;
 pub use error::{Error, Result};
 pub use value::{Type, Value};
 
+pub use columns::{Bindable, BindableWithIndex, ReadableWithIndex};
 pub use connection::{Connection, ConnectionThreadSafe, OpenFlags};
 pub use cursor::{Cursor, CursorWithOwnership, Row, RowIndex};
-pub use statement::{
-    Bindable, BindableWithIndex, ColumnIndex, ParameterIndex, ReadableWithIndex, State, Statement,
-};
+pub use statement::{ColumnIndex, ParameterIndex, State, Statement};
 
 /// Open a read-write connection to a new or existing database.
 #[inline]

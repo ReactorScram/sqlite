@@ -3,8 +3,9 @@ use std::convert::TryFrom;
 use std::ops::{Deref, Index};
 use std::rc::Rc;
 
+use crate::columns::Bindable;
 use crate::error::{Error, Result};
-use crate::statement::{Bindable, State, Statement};
+use crate::statement::{State, Statement};
 use crate::value::Value;
 
 /// An iterator for a prepared statement.
