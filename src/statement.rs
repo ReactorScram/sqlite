@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 
 use crate::columns::{Bindable, ReadableWithIndex};
-use crate::cursor::{Cursor, CursorWithOwnership, Row};
+// FIXME use crate::cursor::{Cursor, CursorWithOwnership, Row};
 use crate::error::Result;
 use crate::value::Type;
 
@@ -21,7 +21,8 @@ pub struct Statement {
 /// A handle to a prepared statement.
 ///
 /// Users of this library can own this type, but they can only call methods on it by giving it to a `Connection` to borrow a full `Statement`.
-pub struct Handle(*mut ffi::sqlite3_stmt);
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+pub struct Handle(pub(crate) *mut ffi::sqlite3_stmt);
 
 /// A type suitable for indexing columns in a prepared statement.
 pub trait ColumnIndex: Copy + std::fmt::Debug {
@@ -48,7 +49,7 @@ pub enum State {
     Done,
 }
 
-impl<'l> Statement<'l> {
+impl Statement {
     /// Bind values to parameters.
     ///
     /// In case of integer indices, the first parameter has index 1.
@@ -56,47 +57,52 @@ impl<'l> Statement<'l> {
     /// # Examples
     ///
     /// ```
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = ?";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind((1, "Bob"))?;
     /// # Ok::<(), sqlite::Error>(())
     /// ```
     ///
     /// ```
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = ?";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind(&[(1, "Bob")][..])?;
     /// # Ok::<(), sqlite::Error>(())
     /// ```
     ///
     /// ```
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind((":name", "Bob"))?;
     /// # Ok::<(), sqlite::Error>(())
     /// ```
     ///
     /// ```
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind(&[(":name", "Bob")][..])?;
     /// # Ok::<(), sqlite::Error>(())
     /// ```
     ///
     /// ```
     /// # use sqlite::Value;
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE id = :id AND name = :name";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind::<&[(_, Value)]>(&[
     ///     (":id", 1.into()),
     ///     (":name", "Bob".into()),
@@ -115,10 +121,11 @@ impl<'l> Statement<'l> {
     ///
     /// ```
     /// # use sqlite::Value;
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "INSERT INTO users VALUES (:id, :name)";
-    /// let mut statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let mut statement = connection.borrow_statement(handle)?;
     /// statement.bind_iter::<_, (_, Value)>([
     ///     (":name", "Bob".into()),
     ///     (":id", 42.into()),
@@ -137,10 +144,13 @@ impl<'l> Statement<'l> {
     }
 
     /// Create a cursor.
+    /*
+    // FIXME
     #[inline]
     pub fn iter(&mut self) -> Cursor<'l, '_> {
         self.into()
     }
+    */
 
     /// Advance to the next state.
     ///
@@ -215,10 +225,11 @@ impl<'l> Statement<'l> {
     /// # Examples
     ///
     /// ```
-    /// # let connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sqlite::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
-    /// let statement = connection.prepare(query)?;
+    /// let handle = connection.prepare(query)?;
+    /// let statement = connection.borrow_statement(handle)?;
     /// assert_eq!(statement.parameter_index(":name")?.unwrap(), 1);
     /// assert_eq!(statement.parameter_index(":asdf")?, None);
     /// # Ok::<(), sqlite::Error>(())
@@ -247,13 +258,15 @@ impl<'l> Statement<'l> {
     }
 }
 
-impl Drop for Statement<'_> {
+impl Drop for Statement {
     #[inline]
     fn drop(&mut self) {
         unsafe { ffi::sqlite3_finalize(self.raw.0) };
     }
 }
 
+/*
+// FIXME
 impl<'l, 'm> From<&'m mut Statement<'l>> for Cursor<'l, 'm> {
     #[inline]
     fn from(statement: &'m mut Statement<'l>) -> Self {
@@ -270,6 +283,7 @@ impl<'l> IntoIterator for Statement<'l> {
         crate::cursor::new_with_ownership(self)
     }
 }
+*/
 
 impl ColumnIndex for &str {
     #[inline]
@@ -314,7 +328,7 @@ impl ParameterIndex for usize {
     }
 }
 
-pub fn new<'l, T>(raw_connection: *mut ffi::sqlite3, statement: T) -> Result<Statement<'l>>
+pub(crate) fn new<T>(raw_connection: *mut ffi::sqlite3, statement: T) -> Result<Statement>
 where
     T: AsRef<str>,
 {

@@ -4,9 +4,9 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
 
-use crate::StatementHandle;
 use crate::error::Result;
 use crate::statement::Statement;
+use crate::StatementHandle;
 
 /// A connection.
 pub struct Connection {
@@ -94,6 +94,30 @@ impl Connection {
 }
 
 impl Connection {
+    /// FIXME: Comment
+    pub fn borrow_statement(&mut self, handle: crate::statement::Handle) -> Result<&mut Statement> {
+        let Some(stmt) = self.statements.get_mut(&handle) else {
+            return Err(crate::Error {
+                code: None,
+                message: Some(
+                    "Tried to borrow a statement Handle with the wrong Connection".into(),
+                ),
+            });
+        };
+        Ok(stmt)
+    }
+
+    /// FIXME: Comment
+    pub fn drop_statement(&mut self, handle: crate::statement::Handle) -> Result<()> {
+        self.statements
+            .remove(&handle)
+            .map(|_| ())
+            .ok_or_else(|| crate::Error {
+                code: None,
+                message: Some("Tried to drop a statement Handle with the wrong Connection".into()),
+            })
+    }
+
     /// Execute a statement without processing the resulting rows if any.
     #[inline]
     pub fn execute<T: AsRef<str>>(&self, statement: T) -> Result<()> {
@@ -140,8 +164,11 @@ impl Connection {
 
     /// Create a prepared statement.
     #[inline]
-    pub fn prepare<T: AsRef<str>>(&self, statement: T) -> Result<Statement<'_>> {
-        crate::statement::new(self.raw.0, statement)
+    pub fn prepare<T: AsRef<str>>(&mut self, statement: T) -> Result<StatementHandle> {
+        let stmt = crate::statement::new(self.raw.0, statement)?;
+        let handle = crate::statement::Handle(stmt.raw.0);
+        self.statements.insert(handle, stmt);
+        Ok(handle)
     }
 
     /// Return the number of rows inserted, updated, or deleted by the most recent INSERT, UPDATE,

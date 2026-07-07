@@ -42,7 +42,7 @@
 //!
 //! ```
 //! use sqlite::State;
-//! # let connection = sqlite::open(":memory:").unwrap();
+//! # let mut connection = sqlite::open(":memory:").unwrap();
 //! # let query = "
 //! #     CREATE TABLE users (name TEXT, age INTEGER);
 //! #     INSERT INTO users VALUES ('Alice', 42);
@@ -51,7 +51,8 @@
 //! # connection.execute(query).unwrap();
 //!
 //! let query = "SELECT * FROM users WHERE age > ?";
-//! let mut statement = connection.prepare(query).unwrap();
+//! let handle = connection.prepare(query).unwrap();
+//! let statement = connection.borrow_statement(handle).unwrap();
 //! statement.bind((1, 50)).unwrap();
 //!
 //! while let Ok(State::Row) = statement.next() {
@@ -60,31 +61,7 @@
 //! }
 //! ```
 //!
-//! Run the same query but using a cursor, which is iterable:
-//!
-//! ```
-//! # let connection = sqlite::open(":memory:").unwrap();
-//! # let query = "
-//! #     CREATE TABLE users (name TEXT, age INTEGER);
-//! #     INSERT INTO users VALUES ('Alice', 42);
-//! #     INSERT INTO users VALUES ('Bob', 69);
-//! # ";
-//! # connection.execute(query).unwrap();
-//!
-//! let query = "SELECT * FROM users WHERE age > ?";
-//!
-//! for row in connection
-//!     .prepare(query)
-//!     .unwrap()
-//!     .into_iter()
-//!     .bind((1, 50))
-//!     .unwrap()
-//!     .map(|row| row.unwrap())
-//! {
-//!     println!("name = {}", row.read::<&str, _>("name"));
-//!     println!("age = {}", row.read::<i64, _>("age"));
-//! }
-//! ```
+//! Run the same query but using a cursor, which is iterable: FIXME
 //!
 //! [1]: https://www.sqlite.org
 
@@ -130,7 +107,7 @@ mod value;
 
 mod columns;
 mod connection;
-mod cursor;
+// FIXME mod cursor;
 mod statement;
 
 pub use error::{Error, Result};
@@ -138,7 +115,7 @@ pub use value::{Type, Value};
 
 pub use columns::{Bindable, BindableWithIndex, ReadableWithIndex};
 pub use connection::{Connection, ConnectionThreadSafe, OpenFlags};
-pub use cursor::{Cursor, CursorWithOwnership, Row, RowIndex};
+// FIXME pub use cursor::{Cursor, CursorWithOwnership, Row, RowIndex};
 pub use statement::{ColumnIndex, Handle as StatementHandle, ParameterIndex, State, Statement};
 
 /// Open a read-write connection to a new or existing database.

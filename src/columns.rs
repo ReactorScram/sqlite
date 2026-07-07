@@ -228,7 +228,7 @@ impl ReadableWithIndex for i64 {
     #[allow(clippy::unnecessary_cast)]
     fn read<T: ColumnIndex>(statement: &Statement, index: T) -> Result<Self> {
         Ok(unsafe {
-            ffi::sqlite3_column_int64(statement.as_raw(), index.index(statement)? as c_int) as i64
+            ffi::sqlite3_column_int64(statement.raw.0, index.index(statement)? as c_int) as i64
         })
     }
 }
@@ -237,7 +237,7 @@ impl ReadableWithIndex for String {
     fn read<T: ColumnIndex>(statement: &Statement, index: T) -> Result<Self> {
         unsafe {
             let pointer =
-                ffi::sqlite3_column_text(statement.as_raw(), index.index(statement)? as c_int);
+                ffi::sqlite3_column_text(statement.raw.0, index.index(statement)? as c_int);
             if pointer.is_null() {
                 raise!("cannot read a text column");
             }

@@ -8,9 +8,10 @@ macro_rules! ok(($result:expr) => ($result.unwrap()));
 
 #[test]
 fn bind_with_index() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "INSERT INTO users VALUES (?, ?, ?, ?, ?)";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     ok!(statement.reset());
     ok!(statement.bind(&[(1, 2i64)][..]));
@@ -63,13 +64,17 @@ fn bind_with_index() {
         ][..]
     ));
     assert_eq!(ok!(statement.next()), State::Done);
+
+    // Dropping the `Connection` will also drop every `Statement` it owns, but to free up resources you can drop them manually.
+    ok!(connection.drop_statement(handle));
 }
 
 #[test]
 fn bind_with_name() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "INSERT INTO users VALUES (:id, :name, :age, :photo, :email)";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     ok!(statement.reset());
     ok!(statement.bind(&[(":id", 2i64)][..]));
@@ -97,10 +102,11 @@ fn bind_with_name() {
 
 #[test]
 fn count() {
-    let connection = setup_english(":memory:");
+    let mut connection = setup_english(":memory:");
 
     let query = "SELECT value FROM english WHERE value LIKE ?";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
     ok!(statement.bind((1, "%type")));
     let mut count = 0;
     while let State::Row = ok!(statement.next()) {
@@ -109,7 +115,8 @@ fn count() {
     assert_eq!(count, 6);
 
     let query = "SELECT value FROM english WHERE value LIKE '%type'";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
     let mut count = 0;
     while let State::Row = ok!(statement.next()) {
         count += 1;
@@ -119,9 +126,10 @@ fn count() {
 
 #[test]
 fn read_with_index() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.next()), State::Row);
     assert_eq!(ok!(statement.read::<i64, _>(0)), 1);
@@ -134,9 +142,10 @@ fn read_with_index() {
 
 #[test]
 fn read_with_index_and_option() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.next()), State::Row);
     assert_eq!(ok!(statement.read::<Option<i64>, _>(0)), Some(1));
@@ -155,9 +164,10 @@ fn read_with_index_and_option() {
 
 #[test]
 fn read_with_name_and_option() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.next()), State::Row);
     assert_eq!(ok!(statement.read::<Option<i64>, _>("id")), Some(1));
@@ -176,9 +186,10 @@ fn read_with_name_and_option() {
 
 #[test]
 fn read_with_name() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.next()), State::Row);
     assert_eq!(ok!(statement.read::<i64, _>("id")), 1);
@@ -194,9 +205,10 @@ fn read_with_name() {
 
 #[test]
 fn column_count() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.next()), State::Row);
     assert_eq!(statement.column_count(), 5);
@@ -204,9 +216,10 @@ fn column_count() {
 
 #[test]
 fn column_name() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT id, name, age, photo AS user_photo FROM users";
-    let statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     let names = statement.column_names();
     assert_eq!(names, vec!["id", "name", "age", "user_photo"]);
@@ -215,9 +228,10 @@ fn column_name() {
 
 #[test]
 fn column_type() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT * FROM users";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
 
     assert_eq!(ok!(statement.column_type(0)), Type::Null);
     assert_eq!(ok!(statement.column_type(1)), Type::Null);
@@ -234,9 +248,10 @@ fn column_type() {
 
 #[test]
 fn parameter_index() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "INSERT INTO users VALUES (:id, :name, :age, :photo, :email)";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = connection.borrow_statement(handle).unwrap();
     ok!(statement.bind((":id", 2i64)));
     ok!(statement.bind((":name", "Bob")));
     ok!(statement.bind((":age", 69.42)));
@@ -244,32 +259,34 @@ fn parameter_index() {
     ok!(statement.bind((":email", ())));
     assert_eq!(ok!(statement.parameter_index(":missing")), None);
     assert_eq!(ok!(statement.next()), State::Done);
+    ok!(connection.drop_statement(handle));
 }
 
 #[test]
 fn workflow_1() {
     struct Database<'l> {
         #[allow(dead_code)]
-        connection: &'l Connection,
-        statement: Statement<'l>,
+        connection: &'l mut Connection,
+        handle: sqlite::StatementHandle,
     }
 
     impl Database<'_> {
         fn run_once(&mut self) -> sqlite::Result<()> {
-            self.statement.reset()?;
-            self.statement.bind((":age", 40))?;
-            assert_eq!(ok!(self.statement.next()), State::Row);
+            let statement = self.connection.borrow_statement(self.handle)?;
+            statement.reset()?;
+            statement.bind((":age", 40))?;
+            assert_eq!(ok!(statement.next()), State::Row);
             Ok(())
         }
     }
 
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     let query = "SELECT name FROM users WHERE age > :age";
-    let statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
 
     let mut database = Database {
-        connection: &connection,
-        statement,
+        connection: &mut connection,
+        handle,
     };
 
     for _ in 0..5 {
@@ -279,22 +296,33 @@ fn workflow_1() {
 
 #[test]
 fn workflow_2() {
-    let connection = ok!(Connection::open(":memory:"));
+    let mut connection = ok!(Connection::open(":memory:"));
     ok!(connection.execute("CREATE TABLE users (name TEXT, age INTEGER, PRIMARY KEY (name))"));
 
-    let mut statement = ok!(connection.prepare(
+    let handle = ok!(connection.prepare(
         "INSERT INTO users (name, age) VALUES ('jean', 49) ON CONFLICT DO UPDATE SET age = 49"
     ));
+    let statement = connection.borrow_statement(handle).unwrap();
     ok!(statement.next());
+    ok!(connection.drop_statement(handle));
 
-    let mut statement = ok!(connection.prepare(
+    let handle = ok!(connection.prepare(
         "INSERT INTO users (name, age) VALUES ('jean', 50) ON CONFLICT DO UPDATE SET age = 50"
     ));
+    let statement = connection.borrow_statement(handle).unwrap();
     ok!(statement.next());
+    ok!(connection.drop_statement(handle));
 
-    let mut statement = ok!(connection.prepare("SELECT * FROM users WHERE name = 'jean'"));
+    let handle = ok!(connection.prepare("SELECT * FROM users WHERE name = 'jean'"));
+    let statement = connection.borrow_statement(handle).unwrap();
     ok!(statement.next());
 
     let age = ok!(statement.read::<i64, _>("age"));
     assert_eq!(age, 50);
+    ok!(connection.drop_statement(handle));
+}
+
+#[test]
+fn workflow_3() {
+    // FIXME: Test `StatementHandle`
 }
