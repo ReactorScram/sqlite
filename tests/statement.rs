@@ -264,13 +264,13 @@ fn parameter_index() {
 
 #[test]
 fn workflow_1() {
-    struct Database<'l> {
+    struct Database {
         #[allow(dead_code)]
-        connection: &'l mut Connection,
+        connection: Connection,
         handle: sqlite::StatementHandle,
     }
 
-    impl Database<'_> {
+    impl Database {
         fn run_once(&mut self) -> sqlite::Result<()> {
             let statement = self.connection.borrow_statement(self.handle)?;
             statement.reset()?;
@@ -285,7 +285,7 @@ fn workflow_1() {
     let handle = ok!(connection.prepare(query));
 
     let mut database = Database {
-        connection: &mut connection,
+        connection,
         handle,
     };
 
@@ -320,9 +320,4 @@ fn workflow_2() {
     let age = ok!(statement.read::<i64, _>("age"));
     assert_eq!(age, 50);
     ok!(connection.drop_statement(handle));
-}
-
-#[test]
-fn workflow_3() {
-    // FIXME: Test `StatementHandle`
 }
