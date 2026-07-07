@@ -11,11 +11,11 @@ use crate::value::Type;
 /// A prepared statement.
 ///
 /// Users of this library cannot own this type, only borrow it.
-pub struct Statement<'l> {
+pub struct Statement {
     pub(crate) raw: (*mut ffi::sqlite3_stmt, *mut ffi::sqlite3),
     pub(crate) column_names: Rc<Vec<String>>,
     column_mapping: Rc<HashMap<String, usize>>,
-    phantom: PhantomData<(ffi::sqlite3_stmt, &'l ffi::sqlite3)>,
+    phantom: PhantomData<(ffi::sqlite3_stmt, ffi::sqlite3)>,
 }
 
 /// A handle to a prepared statement.

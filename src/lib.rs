@@ -139,7 +139,7 @@ pub use value::{Type, Value};
 pub use columns::{Bindable, BindableWithIndex, ReadableWithIndex};
 pub use connection::{Connection, ConnectionThreadSafe, OpenFlags};
 pub use cursor::{Cursor, CursorWithOwnership, Row, RowIndex};
-pub use statement::{ColumnIndex, ParameterIndex, State, Statement};
+pub use statement::{ColumnIndex, Handle as StatementHandle, ParameterIndex, State, Statement};
 
 /// Open a read-write connection to a new or existing database.
 #[inline]
