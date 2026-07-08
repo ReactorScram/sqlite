@@ -94,7 +94,7 @@ impl Connection {
 }
 
 impl Connection {
-    /// FIXME: Comment
+    /// Use a `StatementHandle` to borrow a prepared statement
     pub fn borrow_statement(&mut self, handle: crate::statement::Handle) -> Result<&mut Statement> {
         let Some(stmt) = self.statements.get_mut(&handle) else {
             return Err(crate::Error {
@@ -107,7 +107,7 @@ impl Connection {
         Ok(stmt)
     }
 
-    /// FIXME: Comment
+    /// Drop a prepared statement, finalizing it and freeing its resources
     pub fn drop_statement(&mut self, handle: crate::statement::Handle) -> Result<()> {
         self.statements
             .remove(&handle)
