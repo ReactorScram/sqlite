@@ -1,4 +1,4 @@
-use sqlite::{Connection, State, Statement, Type, Value};
+use sqlite::{Connection, State, Type, Value};
 
 mod common;
 
@@ -284,10 +284,7 @@ fn workflow_1() {
     let query = "SELECT name FROM users WHERE age > :age";
     let handle = ok!(connection.prepare(query));
 
-    let mut database = Database {
-        connection,
-        handle,
-    };
+    let mut database = Database { connection, handle };
 
     for _ in 0..5 {
         assert!(database.run_once().is_ok());

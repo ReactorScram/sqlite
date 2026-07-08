@@ -95,8 +95,8 @@ impl Connection {
 
 impl Connection {
     /// Use a `StatementHandle` to borrow a prepared statement
-    pub fn borrow_statement(&mut self, handle: crate::statement::Handle) -> Result<&mut Statement> {
-        let Some(stmt) = self.statements.get_mut(&handle) else {
+    pub fn borrow_statement(&self, handle: crate::statement::Handle) -> Result<&Statement> {
+        let Some(stmt) = self.statements.get(&handle) else {
             return Err(crate::Error {
                 code: None,
                 message: Some(

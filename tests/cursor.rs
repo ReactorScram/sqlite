@@ -8,13 +8,12 @@ use common::{setup_english, setup_users};
 
 macro_rules! ok(($result:expr) => ($result.unwrap()));
 
-/*
-// FIXME
 #[test]
 fn bind_iter() {
-    let connection = ok!(sqlite::open(":memory:"));
+    let mut connection = ok!(sqlite::open(":memory:"));
     ok!(connection.execute("CREATE TABLE users (id INTEGER, name STRING)"));
-    let mut statement = ok!(connection.prepare("INSERT INTO users VALUES (:id, :name)"));
+    let handle = ok!(connection.prepare("INSERT INTO users VALUES (:id, :name)"));
+    let statement = ok!(connection.borrow_statement(handle));
 
     let mut map = HashMap::<_, Value>::new();
     map.insert(":name", "Bob".to_string().into());
@@ -26,10 +25,11 @@ fn bind_iter() {
 
 #[test]
 fn iter() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
     ok!(connection.execute("INSERT INTO users VALUES (2, 'Bob', NULL, NULL, NULL)"));
     let query = "SELECT id, age FROM users ORDER BY 1 DESC";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = ok!(connection.borrow_statement(handle));
 
     let mut count = 0;
     for row in statement.iter().map(|row| ok!(row)) {
@@ -48,9 +48,10 @@ fn iter() {
 
 #[test]
 fn iter_column_count() {
-    let connection = setup_english(":memory:");
+    let mut connection = setup_english(":memory:");
     let query = "SELECT value FROM english WHERE value LIKE '%type'";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = ok!(connection.borrow_statement(handle));
 
     let cursor = statement.iter();
     assert_eq!(cursor.column_count(), 1);
@@ -58,9 +59,10 @@ fn iter_column_count() {
 
 #[test]
 fn iter_column_type() {
-    let connection = setup_english(":memory:");
+    let mut connection = setup_english(":memory:");
     let query = "SELECT value FROM english WHERE value LIKE '%type'";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = ok!(connection.borrow_statement(handle));
 
     let cursor = statement.iter();
     assert_eq!(ok!(cursor.column_type(0)), Type::Null);
@@ -85,20 +87,22 @@ fn iter_column_type() {
 
 #[test]
 fn iter_count() {
-    let connection = setup_english(":memory:");
+    let mut connection = setup_english(":memory:");
     let query = "SELECT value FROM english WHERE value LIKE '%type'";
-    let mut statement = ok!(connection.prepare(query));
+    let handle = ok!(connection.prepare(query));
+    let statement = ok!(connection.borrow_statement(handle));
 
     assert_eq!(statement.iter().filter(|row| row.is_ok()).count(), 6);
 }
 
 #[test]
 fn iter_with_exception() {
-    let connection = ok!(sqlite::open(":memory:"));
+    let mut connection = ok!(sqlite::open(":memory:"));
     ok!(connection.execute("CREATE TABLE foo(x)"));
     ok!(connection
         .execute("CREATE TRIGGER bar BEFORE INSERT ON foo BEGIN SELECT RAISE(FAIL, 'buz'); END"));
-    let mut statement = ok!(connection.prepare("INSERT INTO foo VALUES (0) RETURNING rowid;"));
+    let handle = ok!(connection.prepare("INSERT INTO foo VALUES (0) RETURNING rowid;"));
+    let statement = ok!(connection.borrow_statement(handle));
     let results = statement.iter().collect::<Vec<_>>();
     assert_eq!(results.len(), 1);
     assert!(matches!(results[0], Err(_)));
@@ -106,14 +110,17 @@ fn iter_with_exception() {
 
 #[test]
 fn workflow() {
-    let connection = setup_users(":memory:");
+    let mut connection = setup_users(":memory:");
 
     let select = "SELECT id, name FROM users WHERE id = ?";
-    let mut select = ok!(connection.prepare(select));
+    let select_handle = ok!(connection.prepare(select));
+    let insert = "INSERT INTO users (id, name) VALUES (?, ?)";
+    let insert_handle = ok!(connection.prepare(insert));
+
+    let select = ok!(connection.borrow_statement(select_handle));
     let mut select = select.iter();
 
-    let insert = "INSERT INTO users (id, name) VALUES (?, ?)";
-    let mut insert = ok!(connection.prepare(insert));
+    let insert = ok!(connection.borrow_statement(insert_handle));
     let insert = insert.iter();
 
     for _ in 0..10 {
@@ -136,4 +143,3 @@ fn workflow() {
     assert_eq!(row.read::<&str, _>("name"), "Bob");
     assert!(select.next().is_none());
 }
-*/

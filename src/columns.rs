@@ -16,7 +16,7 @@ macro_rules! transient(
 /// A type suitable for binding to a prepared statement.
 pub trait Bindable {
     /// Bind to a parameter.
-    fn bind(self, _: &mut Statement) -> Result<()>;
+    fn bind(self, _: &Statement) -> Result<()>;
 }
 
 /// A type suitable for binding to a prepared statement given a parameter index.
@@ -24,7 +24,7 @@ pub trait BindableWithIndex {
     /// Bind to a parameter.
     ///
     /// In case of integer indices, the first parameter has index 1.
-    fn bind<T: ParameterIndex>(self, _: &mut Statement, _: T) -> Result<()>;
+    fn bind<T: ParameterIndex>(self, _: &Statement, _: T) -> Result<()>;
 }
 
 /// A type suitable for reading from a prepared statement given a column index.
@@ -41,7 +41,7 @@ where
     U: BindableWithIndex,
 {
     #[inline]
-    fn bind(self, statement: &mut Statement) -> Result<()> {
+    fn bind(self, statement: &Statement) -> Result<()> {
         self.1.bind(statement, self.0)
     }
 }
@@ -50,7 +50,7 @@ impl<T> Bindable for &[T]
 where
     T: BindableWithIndex + Clone,
 {
-    fn bind(self, statement: &mut Statement) -> Result<()> {
+    fn bind(self, statement: &Statement) -> Result<()> {
         for (index, value) in self.iter().enumerate() {
             value.clone().bind(statement, index + 1)?;
         }
@@ -63,7 +63,7 @@ where
     T: ParameterIndex,
     U: BindableWithIndex + Clone,
 {
-    fn bind(self, statement: &mut Statement) -> Result<()> {
+    fn bind(self, statement: &Statement) -> Result<()> {
         for (index, value) in self.iter() {
             value.clone().bind(statement, *index)?;
         }
@@ -72,7 +72,7 @@ where
 }
 
 impl BindableWithIndex for &[u8] {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         unsafe {
             ok!(
                 statement.raw.1,
@@ -90,7 +90,7 @@ impl BindableWithIndex for &[u8] {
 }
 
 impl BindableWithIndex for f64 {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         unsafe {
             ok!(
                 statement.raw.1,
@@ -106,7 +106,7 @@ impl BindableWithIndex for f64 {
 }
 
 impl BindableWithIndex for i64 {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         unsafe {
             ok!(
                 statement.raw.1,
@@ -122,7 +122,7 @@ impl BindableWithIndex for i64 {
 }
 
 impl BindableWithIndex for &str {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         unsafe {
             ok!(
                 statement.raw.1,
@@ -140,7 +140,7 @@ impl BindableWithIndex for &str {
 }
 
 impl BindableWithIndex for () {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         unsafe {
             ok!(
                 statement.raw.1,
@@ -153,13 +153,13 @@ impl BindableWithIndex for () {
 
 impl BindableWithIndex for Value {
     #[inline]
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         (index, &self).bind(statement)
     }
 }
 
 impl BindableWithIndex for &Value {
-    fn bind<T: ParameterIndex>(self, statement: &mut Statement, index: T) -> Result<()> {
+    fn bind<T: ParameterIndex>(self, statement: &Statement, index: T) -> Result<()> {
         match self {
             Value::Binary(ref value) => (value as &[u8]).bind(statement, index),
             Value::Float(value) => value.bind(statement, index),
@@ -175,7 +175,7 @@ where
     T: BindableWithIndex,
 {
     #[inline]
-    fn bind<U: ParameterIndex>(self, statement: &mut Statement, index: U) -> Result<()> {
+    fn bind<U: ParameterIndex>(self, statement: &Statement, index: U) -> Result<()> {
         match self {
             Some(value) => value.bind(statement, index),
             None => ().bind(statement, index),
@@ -188,7 +188,7 @@ where
     T: BindableWithIndex + Clone,
 {
     #[inline]
-    fn bind<U: ParameterIndex>(self, statement: &mut Statement, index: U) -> Result<()> {
+    fn bind<U: ParameterIndex>(self, statement: &Statement, index: U) -> Result<()> {
         match self {
             Some(value) => value.clone().bind(statement, index),
             None => ().bind(statement, index),

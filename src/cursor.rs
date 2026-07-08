@@ -9,18 +9,20 @@ use crate::statement::{State, Statement};
 use crate::value::Value;
 
 /// An iterator for a prepared statement.
-pub struct Cursor<'l, 'm> {
+pub struct Cursor<'m> {
     column_count: usize,
-    statement: &'m mut Statement<'l>,
+    statement: &'m Statement,
     poisoned: bool,
 }
 
+/* FIXME
 /// An iterator for a prepared statement with ownership.
 pub struct CursorWithOwnership<'l> {
     column_count: usize,
-    statement: Statement<'l>,
+    statement: Statement,
     poisoned: bool,
 }
+*/
 
 /// A row.
 #[derive(Debug)]
@@ -91,7 +93,7 @@ macro_rules! implement(
         }
 
         impl<$($lifetime),+> Deref for $type<$($lifetime),+> {
-            type Target = Statement<'l>;
+            type Target = Statement;
 
             #[inline]
             fn deref(&self) -> &Self::Target {
@@ -124,7 +126,8 @@ macro_rules! implement(
     }
 );
 
-implement!(Cursor<'l, 'm>);
+implement!(Cursor<'m>);
+/* FIXME
 implement!(CursorWithOwnership<'l>);
 
 impl<'l> From<CursorWithOwnership<'l>> for Statement<'l> {
@@ -133,6 +136,7 @@ impl<'l> From<CursorWithOwnership<'l>> for Statement<'l> {
         cursor.statement
     }
 }
+*/
 
 impl Row {
     /// Check if the row contains a column.
@@ -245,7 +249,7 @@ impl RowIndex for usize {
     }
 }
 
-pub fn new<'l, 'm>(statement: &'m mut Statement<'l>) -> Cursor<'l, 'm> {
+pub fn new<'m>(statement: &'m Statement) -> Cursor<'m> {
     Cursor {
         column_count: statement.column_count(),
         statement,
@@ -253,6 +257,7 @@ pub fn new<'l, 'm>(statement: &'m mut Statement<'l>) -> Cursor<'l, 'm> {
     }
 }
 
+/* FIXME
 pub fn new_with_ownership(statement: Statement<'_>) -> CursorWithOwnership<'_> {
     CursorWithOwnership {
         column_count: statement.column_count(),
@@ -260,3 +265,4 @@ pub fn new_with_ownership(statement: Statement<'_>) -> CursorWithOwnership<'_> {
         poisoned: false,
     }
 }
+*/

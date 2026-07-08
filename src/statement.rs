@@ -4,13 +4,13 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 
 use crate::columns::{Bindable, ReadableWithIndex};
-// FIXME use crate::cursor::{Cursor, CursorWithOwnership, Row};
+use crate::cursor::{Cursor, /* FIXME CursorWithOwnership,*/ Row};
 use crate::error::Result;
 use crate::value::Type;
 
 /// A prepared statement.
 ///
-/// Users of this library cannot own this type, only borrow it.
+/// Only `Connection` can own this type, everything else may only borrow it.
 pub struct Statement {
     pub(crate) raw: (*mut ffi::sqlite3_stmt, *mut ffi::sqlite3),
     pub(crate) column_names: Rc<Vec<String>>,
@@ -110,7 +110,7 @@ impl Statement {
     /// # Ok::<(), sqlite::Error>(())
     /// ```
     #[inline]
-    pub fn bind<T: Bindable>(&mut self, value: T) -> Result<()> {
+    pub fn bind<T: Bindable>(&self, value: T) -> Result<()> {
         value.bind(self)?;
         Ok(())
     }
@@ -132,7 +132,7 @@ impl Statement {
     /// ])?;
     /// # Ok::<(), sqlite::Error>(())
     /// ```
-    pub fn bind_iter<T, U>(&mut self, value: T) -> Result<()>
+    pub fn bind_iter<T, U>(&self, value: T) -> Result<()>
     where
         T: IntoIterator<Item = U>,
         U: Bindable,
@@ -144,20 +144,17 @@ impl Statement {
     }
 
     /// Create a cursor.
-    /*
-    // FIXME
     #[inline]
-    pub fn iter(&mut self) -> Cursor<'l, '_> {
+    pub fn iter(&self) -> Cursor<'_> {
         self.into()
     }
-    */
 
     /// Advance to the next state.
     ///
     /// The function should be called multiple times until `State::Done` is reached in order to
     /// evaluate the statement entirely.
     #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> Result<State> {
+    pub fn next(&self) -> Result<State> {
         Ok(match unsafe { ffi::sqlite3_step(self.raw.0) } {
             ffi::SQLITE_ROW => State::Row,
             ffi::SQLITE_DONE => State::Done,
@@ -246,7 +243,7 @@ impl Statement {
 
     /// Reset the internal state.
     #[inline]
-    pub fn reset(&mut self) -> Result<()> {
+    pub fn reset(&self) -> Result<()> {
         unsafe { ok!(self.raw.1, ffi::sqlite3_reset(self.raw.0)) };
         Ok(())
     }
@@ -265,15 +262,14 @@ impl Drop for Statement {
     }
 }
 
-/*
-// FIXME
-impl<'l, 'm> From<&'m mut Statement<'l>> for Cursor<'l, 'm> {
+impl<'m> From<&'m Statement> for Cursor<'m> {
     #[inline]
-    fn from(statement: &'m mut Statement<'l>) -> Self {
+    fn from(statement: &'m Statement) -> Self {
         crate::cursor::new(statement)
     }
 }
 
+/*
 impl<'l> IntoIterator for Statement<'l> {
     type Item = Result<Row>;
     type IntoIter = CursorWithOwnership<'l>;

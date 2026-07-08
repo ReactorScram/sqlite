@@ -107,7 +107,7 @@ mod value;
 
 mod columns;
 mod connection;
-// FIXME mod cursor;
+mod cursor;
 mod statement;
 
 pub use error::{Error, Result};
@@ -115,7 +115,7 @@ pub use value::{Type, Value};
 
 pub use columns::{Bindable, BindableWithIndex, ReadableWithIndex};
 pub use connection::{Connection, ConnectionThreadSafe, OpenFlags};
-// FIXME pub use cursor::{Cursor, CursorWithOwnership, Row, RowIndex};
+pub use cursor::{Cursor, /* FIXME CursorWithOwnership, */ Row, RowIndex};
 pub use statement::{ColumnIndex, Handle as StatementHandle, ParameterIndex, State, Statement};
 
 /// Open a read-write connection to a new or existing database.
