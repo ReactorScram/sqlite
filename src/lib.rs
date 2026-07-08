@@ -61,7 +61,32 @@
 //! }
 //! ```
 //!
-//! Run the same query but using a cursor, which is iterable: FIXME
+//! Run the same query but using a cursor, which is iterable:
+//!
+//! ```
+//! # let mut connection = sqlite::open(":memory:").unwrap();
+//! # let query = "
+//! #     CREATE TABLE users (name TEXT, age INTEGER);
+//! #     INSERT INTO users VALUES ('Alice', 42);
+//! #     INSERT INTO users VALUES ('Bob', 69);
+//! # ";
+//! # connection.execute(query).unwrap();
+//!
+//! let query = "SELECT * FROM users WHERE age > ?";
+//! let handle = connection.prepare(query).unwrap();
+//!
+//! for row in connection
+//!     .borrow_statement(handle)
+//!     .unwrap()
+//!     .iter()
+//!     .bind((1, 50))
+//!     .unwrap()
+//!     .map(|row| row.unwrap())
+//! {
+//!     println!("name = {}", row.read::<&str, _>("name"));
+//!     println!("age = {}", row.read::<i64, _>("age"));
+//! }
+//! ```
 //!
 //! [1]: https://www.sqlite.org
 

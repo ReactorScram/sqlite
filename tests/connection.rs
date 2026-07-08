@@ -23,7 +23,7 @@ fn open_with_flags() {
 }
 
 /*
-// FIXME
+// FIXME - Send / Sync
 #[tokio::test]
 async fn open_thread_safe_async() {
     use std::sync::Arc;
@@ -47,7 +47,7 @@ async fn open_thread_safe_async() {
 */
 
 /*
-// FIXME
+// FIXME - Send / Sync
 #[test]
 fn open_thread_safe_sync() {
     use std::sync::Arc;

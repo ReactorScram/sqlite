@@ -15,7 +15,7 @@ pub struct Cursor<'m> {
     poisoned: bool,
 }
 
-/* FIXME
+/* FIXME - Impossible?
 /// An iterator for a prepared statement with ownership.
 pub struct CursorWithOwnership<'l> {
     column_count: usize,
@@ -127,7 +127,7 @@ macro_rules! implement(
 );
 
 implement!(Cursor<'m>);
-/* FIXME
+/* FIXME - Impossible?
 implement!(CursorWithOwnership<'l>);
 
 impl<'l> From<CursorWithOwnership<'l>> for Statement<'l> {
@@ -257,7 +257,7 @@ pub fn new<'m>(statement: &'m Statement) -> Cursor<'m> {
     }
 }
 
-/* FIXME
+/* FIXME - Impossible?
 pub fn new_with_ownership(statement: Statement<'_>) -> CursorWithOwnership<'_> {
     CursorWithOwnership {
         column_count: statement.column_count(),
