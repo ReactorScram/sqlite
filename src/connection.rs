@@ -94,6 +94,14 @@ impl Connection {
 }
 
 impl Connection {
+    pub fn begin_immediate_transaction(&self) -> Result<Transaction<'_>> {
+        self.execute("BEGIN IMMEDIATE")?;
+        Ok(Transaction {
+            connection: self,
+            tried_commit: false,
+        })
+    }
+
     /// Use a `StatementHandle` to borrow a prepared statement
     pub fn borrow_statement(&self, handle: crate::statement::Handle) -> Result<&Statement> {
         let Some(stmt) = self.statements.get(&handle) else {
@@ -440,5 +448,25 @@ where
             pairs.push((column, value));
         }
         c_int::from(!(*(callback as *mut F))(&pairs))
+    }
+}
+
+pub struct Transaction<'a> {
+    connection: &'a Connection,
+    tried_commit: bool,
+}
+
+impl<'a> Transaction<'a> {
+    pub fn commit(mut self) -> Result<()> {
+        self.tried_commit = true;
+        self.connection.execute("COMMIT")
+    }
+}
+
+impl<'a> Drop for Transaction<'a> {
+    fn drop(&mut self) {
+        if !self.tried_commit {
+            self.connection.execute("ROLLBACK TRANSACTION").unwrap();
+        }
     }
 }

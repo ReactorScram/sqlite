@@ -177,3 +177,41 @@ fn change_count() {
     assert_eq!(connection.change_count(), 2);
     assert_eq!(connection.total_change_count(), 5);
 }
+
+#[test]
+fn transactions() {
+    let mut connection = setup_users(":memory:");
+
+    let handle = ok!(connection.prepare("SELECT name FROM users WHERE id = 1"));
+    let get_stmt = ok!(connection.borrow_statement(handle));
+
+    ok!(get_stmt.reset());
+    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Alice");
+
+    // Dropping a transaction rolls it back
+    {
+        let _tx = connection.begin_immediate_transaction().unwrap();
+        connection
+            .execute("UPDATE users SET name = 'Bob' where id = 1")
+            .unwrap();
+    }
+
+    ok!(get_stmt.reset());
+    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Alice");
+
+    // Committing a transaction commits it
+    {
+        let tx = connection.begin_immediate_transaction().unwrap();
+        connection
+            .execute("UPDATE users SET name = 'Bob' where id = 1")
+            .unwrap();
+        tx.commit().unwrap();
+    }
+
+    // Congrats on your transaction, Bob
+    ok!(get_stmt.reset());
+    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Bob");
+}
