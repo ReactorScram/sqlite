@@ -2,7 +2,7 @@
 name = "sqlite"
 version = "0.37.0"
 edition = "2021"
-license = "Apache-2.0 OR MIT"
+license = "AGPL-v3.0"
 authors = [
     "Alec Moskvin <alecm@gmx.com>",
     "Angel Leon <gubatron@gmail.com>",
@@ -17,6 +17,7 @@ authors = [
     "Jonatan Lemes <jlemes@lenovo.com>",
     "Luna Lux <l.lux@magenta.de>",
     "Pierre Krieger <pierre.krieger1708@gmail.com>",
+    "ReactorScram",
     "Sean Klein <seanmarionklein@gmail.com>",
     "Sophie Tauchert <999eagle@999eagle.moe>",
     "Tomoki Aonuma <uasi@uasi.jp>",
@@ -25,9 +26,9 @@ authors = [
     "kodeschreiber",
 ]
 description = "The package provides an interface to SQLite."
-documentation = "https://docs.rs/sqlite"
-homepage = "https://github.com/stainless-steel/sqlite"
-repository = "https://github.com/stainless-steel/sqlite"
+# documentation = "https://docs.rs/sqlite"
+homepage = "https://github.com/ReactorScram/sqlite"
+repository = "https://github.com/ReactorScram/sqlite"
 readme = "README.md"
 categories = ["api-bindings", "database"]
 keywords = ["database"]

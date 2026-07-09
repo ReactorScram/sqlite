@@ -2,6 +2,8 @@
 
 The package provides an interface to [SQLite].
 
+(This is a fork of https://github.com/stainless-steel/sqlite with different API ergonomics.)
+
 ## Example
 
 Open a connection, create a table, and insert a few rows:
@@ -66,12 +68,6 @@ for row in connection
     println!("age = {}", row.read::<i64, _>("age"));
 }
 ```
-
-## Contribution
-
-Your contribution is highly appreciated. Do not hesitate to open an issue or a
-pull request. Note that any contribution submitted for inclusion in the project
-will be licensed according to the terms given in [LICENSE.md](LICENSE.md).
 
 [SQLite]: https://www.sqlite.org
 
