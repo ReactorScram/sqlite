@@ -104,6 +104,7 @@ impl Connection {
                 ),
             });
         };
+        stmt.reset()?;
         Ok(stmt)
     }
 

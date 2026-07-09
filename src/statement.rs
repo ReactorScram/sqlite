@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 
 use crate::columns::{Bindable, ReadableWithIndex};
-use crate::cursor::{Cursor, /* FIXME CursorWithOwnership,*/ Row};
+use crate::cursor::Cursor;
 use crate::error::Result;
 use crate::value::Type;
 
