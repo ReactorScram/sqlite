@@ -1,4 +1,4 @@
-# SQLite [![Package][package-img]][package-url] [![Documentation][documentation-img]][documentation-url] [![Build][build-img]][build-url]
+# sqlite-peas
 
 The package provides an interface to [SQLite].
 
@@ -70,10 +70,3 @@ for row in connection
 ```
 
 [SQLite]: https://www.sqlite.org
-
-[build-img]: https://github.com/stainless-steel/sqlite/workflows/build/badge.svg
-[build-url]: https://github.com/stainless-steel/sqlite/actions/workflows/build.yml
-[documentation-img]: https://docs.rs/sqlite/badge.svg
-[documentation-url]: https://docs.rs/sqlite
-[package-img]: https://img.shields.io/crates/v/sqlite.svg
-[package-url]: https://crates.io/crates/sqlite
