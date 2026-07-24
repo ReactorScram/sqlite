@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use sqlite::{Type, Value};
+use sql_peas::{Type, Value};
 
 mod common;
 
@@ -10,7 +10,7 @@ macro_rules! ok(($result:expr) => ($result.unwrap()));
 
 #[test]
 fn bind_iter() {
-    let mut connection = ok!(sqlite::open(":memory:"));
+    let mut connection = ok!(sql_peas::open(":memory:"));
     ok!(connection.execute("CREATE TABLE users (id INTEGER, name STRING)"));
     let handle = ok!(connection.prepare("INSERT INTO users VALUES (:id, :name)"));
     let statement = ok!(connection.borrow_statement(handle));
@@ -97,7 +97,7 @@ fn iter_count() {
 
 #[test]
 fn iter_with_exception() {
-    let mut connection = ok!(sqlite::open(":memory:"));
+    let mut connection = ok!(sql_peas::open(":memory:"));
     ok!(connection.execute("CREATE TABLE foo(x)"));
     ok!(connection
         .execute("CREATE TRIGGER bar BEFORE INSERT ON foo BEGIN SELECT RAISE(FAIL, 'buz'); END"));

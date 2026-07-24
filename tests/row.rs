@@ -1,4 +1,4 @@
-use sqlite::Value;
+use sql_peas::Value;
 
 mod common;
 

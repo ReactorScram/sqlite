@@ -1,4 +1,4 @@
-use sqlite::{Connection, OpenFlags, State};
+use sql_peas::{Connection, OpenFlags, State};
 
 mod common;
 
@@ -116,7 +116,7 @@ fn set_busy_handler() {
         .map(|_| {
             let path = path.to_path_buf();
             spawn(move || {
-                let mut connection = ok!(sqlite::open(&path));
+                let mut connection = ok!(sql_peas::open(&path));
                 ok!(connection.set_busy_handler(|_| true));
                 let query = "INSERT INTO users VALUES (?, ?, ?, ?, ?)";
                 let handle = ok!(connection.prepare(query));
@@ -186,7 +186,7 @@ fn transactions() {
     let get_stmt = ok!(connection.borrow_statement(handle));
 
     ok!(get_stmt.reset());
-    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.next()), sql_peas::State::Row);
     assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Alice");
 
     // Dropping a transaction rolls it back
@@ -198,7 +198,7 @@ fn transactions() {
     }
 
     ok!(get_stmt.reset());
-    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.next()), sql_peas::State::Row);
     assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Alice");
 
     // Committing a transaction commits it
@@ -212,6 +212,6 @@ fn transactions() {
 
     // Congrats on your transaction, Bob
     ok!(get_stmt.reset());
-    assert_eq!(ok!(get_stmt.next()), sqlite::State::Row);
+    assert_eq!(ok!(get_stmt.next()), sql_peas::State::Row);
     assert_eq!(ok!(get_stmt.read::<String, _>(0)), "Bob");
 }

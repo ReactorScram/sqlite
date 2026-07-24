@@ -5,7 +5,7 @@
 //! Open a connection, create a table, and insert a few rows:
 //!
 //! ```
-//! let connection = sqlite::open(":memory:").unwrap();
+//! let connection = sql_peas::open(":memory:").unwrap();
 //!
 //! let query = "
 //!     CREATE TABLE users (name TEXT, age INTEGER);
@@ -18,7 +18,7 @@
 //! Select some rows and process them one by one as plain text, which is generally not efficient:
 //!
 //! ```
-//! # let connection = sqlite::open(":memory:").unwrap();
+//! # let connection = sql_peas::open(":memory:").unwrap();
 //! # let query = "
 //! #     CREATE TABLE users (name TEXT, age INTEGER);
 //! #     INSERT INTO users VALUES ('Alice', 42);
@@ -41,8 +41,8 @@
 //! previous technique:
 //!
 //! ```
-//! use sqlite::State;
-//! # let mut connection = sqlite::open(":memory:").unwrap();
+//! use sql_peas::State;
+//! # let mut connection = sql_peas::open(":memory:").unwrap();
 //! # let query = "
 //! #     CREATE TABLE users (name TEXT, age INTEGER);
 //! #     INSERT INTO users VALUES ('Alice', 42);
@@ -64,7 +64,7 @@
 //! Run the same query but using a cursor, which is iterable:
 //!
 //! ```
-//! # let mut connection = sqlite::open(":memory:").unwrap();
+//! # let mut connection = sql_peas::open(":memory:").unwrap();
 //! # let query = "
 //! #     CREATE TABLE users (name TEXT, age INTEGER);
 //! #     INSERT INTO users VALUES ('Alice', 42);

@@ -57,48 +57,48 @@ impl Statement {
     /// # Examples
     ///
     /// ```
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = ?";
     /// let handle = connection.prepare(query)?;
     /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind((1, "Bob"))?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     ///
     /// ```
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = ?";
     /// let handle = connection.prepare(query)?;
     /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind(&[(1, "Bob")][..])?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     ///
     /// ```
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
     /// let handle = connection.prepare(query)?;
     /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind((":name", "Bob"))?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     ///
     /// ```
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
     /// let handle = connection.prepare(query)?;
     /// let statement = connection.borrow_statement(handle)?;
     /// statement.bind(&[(":name", "Bob")][..])?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     ///
     /// ```
-    /// # use sqlite::Value;
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # use sql_peas::Value;
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "SELECT * FROM users WHERE id = :id AND name = :name";
     /// let handle = connection.prepare(query)?;
@@ -107,7 +107,7 @@ impl Statement {
     ///     (":id", 1.into()),
     ///     (":name", "Bob".into()),
     /// ][..])?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     #[inline]
     pub fn bind<T: Bindable>(&self, value: T) -> Result<()> {
@@ -120,8 +120,8 @@ impl Statement {
     /// # Examples
     ///
     /// ```
-    /// # use sqlite::Value;
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # use sql_peas::Value;
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (id INTEGER, name STRING)");
     /// let query = "INSERT INTO users VALUES (:id, :name)";
     /// let handle = connection.prepare(query)?;
@@ -130,7 +130,7 @@ impl Statement {
     ///     (":name", "Bob".into()),
     ///     (":id", 42.into()),
     /// ])?;
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     pub fn bind_iter<T, U>(&self, value: T) -> Result<()>
     where
@@ -222,14 +222,14 @@ impl Statement {
     /// # Examples
     ///
     /// ```
-    /// # let mut connection = sqlite::open(":memory:").unwrap();
+    /// # let mut connection = sql_peas::open(":memory:").unwrap();
     /// # connection.execute("CREATE TABLE users (name STRING)");
     /// let query = "SELECT * FROM users WHERE name = :name";
     /// let handle = connection.prepare(query)?;
     /// let statement = connection.borrow_statement(handle)?;
     /// assert_eq!(statement.parameter_index(":name")?.unwrap(), 1);
     /// assert_eq!(statement.parameter_index(":asdf")?, None);
-    /// # Ok::<(), sqlite::Error>(())
+    /// # Ok::<(), sql_peas::Error>(())
     /// ```
     pub fn parameter_index(&self, parameter: &str) -> Result<Option<usize>> {
         let index = unsafe {

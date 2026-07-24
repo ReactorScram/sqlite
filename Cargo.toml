@@ -1,5 +1,5 @@
 [package]
-name = "sqlite"
+name = "sql-peas"
 version = "0.37.0"
 edition = "2021"
 license = "AGPL-v3.0"

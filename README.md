@@ -1,4 +1,4 @@
-# sqlite-peas
+# sql-peas
 
 The package provides an interface to [SQLite].
 

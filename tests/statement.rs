@@ -1,4 +1,4 @@
-use sqlite::{Connection, State, Type, Value};
+use sql_peas::{Connection, State, Type, Value};
 
 mod common;
 
@@ -267,11 +267,11 @@ fn workflow_1() {
     struct Database {
         #[allow(dead_code)]
         connection: Connection,
-        handle: sqlite::StatementHandle,
+        handle: sql_peas::StatementHandle,
     }
 
     impl Database {
-        fn run_once(&mut self) -> sqlite::Result<()> {
+        fn run_once(&mut self) -> sql_peas::Result<()> {
             let statement = self.connection.borrow_statement(self.handle)?;
             statement.reset()?;
             statement.bind((":age", 40))?;

@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 
-use sqlite::Connection;
+use sql_peas::Connection;
 use std::path::Path;
 
 macro_rules! ok(($result:expr) => ($result.unwrap()));
 
 pub fn setup_english<T: AsRef<Path>>(path: T) -> Connection {
-    let connection = ok!(sqlite::open(path));
+    let connection = ok!(sql_peas::open(path));
     ok!(connection.execute(
         "
         CREATE TABLE english (value TEXT);
@@ -23,7 +23,7 @@ pub fn setup_english<T: AsRef<Path>>(path: T) -> Connection {
 }
 
 pub fn setup_users<T: AsRef<Path>>(path: T) -> Connection {
-    let connection = ok!(sqlite::open(path));
+    let connection = ok!(sql_peas::open(path));
     ok!(connection.execute(
         "
         CREATE TABLE users (id INTEGER, name TEXT, age REAL, photo BLOB, email TEXT);
