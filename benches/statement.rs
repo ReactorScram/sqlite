@@ -4,7 +4,7 @@ extern crate test;
 
 mod common;
 
-use sqlite::State;
+use sql_peas::State;
 use test::Bencher;
 
 use common::{create, populate};
